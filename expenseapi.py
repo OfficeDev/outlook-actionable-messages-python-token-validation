@@ -26,20 +26,17 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import base64
-import json
-import jwt
-
-from cryptography.hazmat.backends import default_backend
 from flask import Flask, request, abort
-from openid import OpenIDConnectConfiguration
+from validation import (
+    InvalidActionableMessageTokenError,
+    ActionableMessageTokenValidator,
+    ActionableMessageTokenValidationResult
+)
 
 app = Flask(__name__)
 
 @app.route("/api/expense", methods = ["POST"])
 def api_post_expense():
-    openid_config = OpenIDConnectConfiguration('https://substrate.office.com/sts/common/.well-known/openid-configuration')
-    
     authorization = request.headers['Authorization']
     token_type, token = authorization.rsplit(' ', 1)
     
@@ -47,47 +44,28 @@ def api_post_expense():
         print("bearer token not found")
         abort(500)
 
-    signing_keys = openid_config.signing_keys()
-    header = get_jwt_header(token)
+    validator = ActionableMessageTokenValidator()
+    result = ActionableMessageTokenValidationResult()
     
-    if header['kid'] not in signing_keys.keys():
-        print('KeyID {:s} does not exist'.format(header['kid']))
+    try:
+        # Replace [WEB SERVICE URL] with your service domain URL.
+        # For example, if the service URL is https://api.contoso.com/finance/expense?id=1234,
+        # then replace [WEB SERVICE URL] with https://api.contoso.com
+        result = validator.validation_token(token, "[WEB SERVICE URL]")
+    
+    except InvalidActionableMessageTokenError as e:
+        print(e)
         abort(500)
     
-    public_key = signing_keys[header['kid']]
-    
-    # Replace [WEB SERVICE URL] with your service domain URL.
-    # For example, if the service URL is https://api.contoso.com/finance/expense?id=1234,
-    # then replace [WEB SERVICE URL] with https://api.contoso.com
-    claims = jwt.decode(
-        token, 
-        public_key, 
-        algorithms=['RS256'], 
-        issuer='https://substrate.office.com/sts/',
-        audience='[WEB SERVICE URL]')
-    
-    if claims['appid'].lower() != '48af08dc-f6d2-435f-b2a7-069abd99c086':
-        abort(500)
-    
-    # sender claim will contain the email address of the sender.
-    # Validate that the email is sent by your organization.
-    sender = claims['sender']
-    
-    # subject claim will contain the email of the person who performed the action.
-    # Validate that the person has the priviledge to perform this action.
-    subject = claims['sub']
+    # We have a valid token. We will verify the sender and the action performer. 
+    # In this example, we verify that the email is sent by Contoso LOB system
+    # and the action performer has to be someone with @contoso.com email.
+    if result.sender.lower() != 'lob@contoso.com' or \
+       not result.action_performer.lower().endswith('@contoso.com'):
+       print('Invalid sender or the action performer is not allowed.')
+       abort(500)
     
     return ''
 
-def get_jwt_header(jwt):
-    jwt = jwt.encode('utf-8')
-    
-    signing_input, crypto_segment = jwt.rsplit(b'.', 1)
-    header_segment, payload_segment = signing_input.split(b'.', 1)
-    header_data = base64.urlsafe_b64decode(header_segment)
-    header = json.loads(header_data.decode('utf-8'))
-    
-    return header
-    
 if __name__ == "__main__":
     app.run();
