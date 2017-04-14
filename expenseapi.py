@@ -26,6 +26,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+import flask
+
 from flask import Flask, request, abort
 from validation import (
     InvalidActionableMessageTokenError,
@@ -41,31 +43,38 @@ def api_post_expense():
     token_type, token = authorization.rsplit(' ', 1)
     
     if token_type.lower() != "bearer":
-        print("bearer token not found")
-        abort(500)
+        abort(401)
 
     validator = ActionableMessageTokenValidator()
     result = ActionableMessageTokenValidationResult()
     
     try:
-        # Replace [WEB SERVICE URL] with your service domain URL.
-        # For example, if the service URL is https://api.contoso.com/finance/expense?id=1234,
-        # then replace [WEB SERVICE URL] with https://api.contoso.com
-        result = validator.validation_token(token, "[WEB SERVICE URL]")
+        # Replace https://api.contoso.com with your service domain URL.
+        # For example, if the service URL is https://api.xyz.com/finance/expense?id=1234,
+        # then replace https://api.contoso.com with https://api.xyz.com
+        result = validator.validation_token(token, "https://ktglobservice.azurewebsites.net") # "https://api.contoso.com")
     
     except InvalidActionableMessageTokenError as e:
         print(e)
-        abort(500)
+        abort(401)
     
     # We have a valid token. We will verify the sender and the action performer. 
+    # You should replace the code below with your own validation logic.
     # In this example, we verify that the email is sent by Contoso LOB system
     # and the action performer has to be someone with @contoso.com email.
+    #
+    # You should also return the CARD-ACTION-STATUS header in the response.
+    # The value of the header will be displayed to the user.
     if result.sender.lower() != 'lob@contoso.com' or \
        not result.action_performer.lower().endswith('@contoso.com'):
-       print('Invalid sender or the action performer is not allowed.')
-       abort(500)
-    
-    return ''
+       resp = flask.Response('')
+       resp.headers['CARD-ACTION-STATUS'] = 'Invalid sender or the action performer is not allowed.'
+       return resp, 403
+
+    # Further business logic code here to process the expense report.
+    resp = flask.Response('')
+    resp.headers['CARD-ACTION-STATUS'] = 'The expense was approved.'
+    return resp
 
 if __name__ == "__main__":
     app.run();

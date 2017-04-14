@@ -37,60 +37,105 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from openid import OpenIDConnectConfiguration
 
 class InvalidActionableMessageTokenError(Exception) : 
+    """
+    Represents the error where the actionable message token is invalid.
+    """
     pass
     
 class ActionableMessageTokenValidationResult(object):
+    """
+    Result from a token validation.
+    """
+    
     def __init__(self):
+        """
+        Constructor.
+        """
         self.__sender = ''
         self.__action_performer = ''
-        
+
     @property
     def sender(self):
+        """
+        Gets the sender.
+        """
         return self.__sender
         
     @sender.setter
     def sender(self, value):
+        """
+        Sets the sender.
+        """
         self.__sender = value
     
     @sender.deleter
     def sender(self):
+        """
+        Deletes the sender property.
+        """
         del self.__sender
 
     @property
     def action_performer(self):
+        """
+        Gets the action performer.
+        """
         return self.__action_performer
         
     @action_performer.setter
     def action_performer(self, value):
+        """
+        Sets the action performer.
+        """
         self.__action_performer = value
     
     @action_performer.deleter
     def action_performer(self):
+        """
+        Deletes the action performer property.
+        """
         del self.__action_performer
 
+class O365OpenIdConfiguration(object):
+    """
+    Constants for O365 Open ID configuration.
+    """
+    APP_ID = "48af08dc-f6d2-435f-b2a7-069abd99c086";
+    METADATA_URL = "https://substrate.office.com/sts/common/.well-known/openid-configuration";
+    TOKEN_ISSUER = "https://substrate.office.com/sts/";
+        
 class ActionableMessageTokenValidator(object):
-    def __init__(self): pass
+    """
+    The validator for actionable message token.
+    """
+    
+    def __init__(self): 
+        """
+        Constructor.
+        """
+        pass
     
     def validation_token(self, token, targetUrl):
+        """
+        Validate the JWT token issued by Microsoft.
+        """
         try:
             result = ActionableMessageTokenValidationResult()
-            openid_config = OpenIDConnectConfiguration('https://substrate.office.com/sts/common/.well-known/openid-configuration')
-            signing_keys = openid_config.signing_keys()
+            openid_config = OpenIDConnectConfiguration(O365OpenIdConfiguration.METADATA_URL)
             header = self._get_jwt_header(token)
+            public_key = openid_config.get_key(header['kid'])
             
-            if header['kid'] not in signing_keys.keys():
+            if public_key is None:
                 raise InvalidActionableMessageTokenError('KeyID {:s} does not exist'.format(header['kid']))
-            
-            public_key = signing_keys[header['kid']]
             
             claims = jwt.decode(
                 token, 
                 public_key, 
                 algorithms=['RS256'], 
-                issuer='https://substrate.office.com/sts/',
+                issuer=O365OpenIdConfiguration.TOKEN_ISSUER,
                 audience=targetUrl)
             
-            if claims['appid'].lower() != '48af08dc-f6d2-435f-b2a7-069abd99c086':
+            if claims['appid'].lower() != O365OpenIdConfiguration.APP_ID:
                 raise InvalidActionableMessageTokenError('Invalid appid in the token')
 
             result.sender = claims['sender']
@@ -101,6 +146,9 @@ class ActionableMessageTokenValidator(object):
         return result
         
     def _get_jwt_header(self, jwt):
+        """
+        Gets the header of the JWT token.
+        """
         jwt = jwt.encode('utf-8')
         
         signing_input, crypto_segment = jwt.rsplit(b'.', 1)
