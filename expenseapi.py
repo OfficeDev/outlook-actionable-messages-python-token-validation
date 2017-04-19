@@ -25,8 +25,6 @@
 
 import flask
 
-import flask
-
 from flask import Flask, request, abort
 from validation import (
     InvalidActionableMessageTokenError,
