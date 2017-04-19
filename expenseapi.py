@@ -46,10 +46,15 @@ def api_post_expense():
     result = ActionableMessageTokenValidationResult()
     
     try:
+        # validate_token will verify the following
+        # 1. The token is issued by Microsoft and its digital signature is valid.
+        # 2. The token has not expired.
+        # 3. The audience claim matches the service domain URL.
+        #
         # Replace https://api.contoso.com with your service domain URL.
         # For example, if the service URL is https://api.xyz.com/finance/expense?id=1234,
         # then replace https://api.contoso.com with https://api.xyz.com
-        result = validator.validation_token(token, "https://ktglobservice.azurewebsites.net") # "https://api.contoso.com")
+        result = validator.validate_token(token, "https://api.contoso.com")
     
     except InvalidActionableMessageTokenError as e:
         print(e)
@@ -57,12 +62,12 @@ def api_post_expense():
     
     # We have a valid token. We will verify the sender and the action performer. 
     # You should replace the code below with your own validation logic.
-    # In this example, we verify that the email is sent by Contoso LOB system
+    # In this example, we verify that the email is sent by expense@contoso.com
     # and the action performer has to be someone with @contoso.com email.
     #
     # You should also return the CARD-ACTION-STATUS header in the response.
     # The value of the header will be displayed to the user.
-    if result.sender.lower() != 'lob@contoso.com' or \
+    if result.sender.lower() != 'expense@contoso.com' or \
        not result.action_performer.lower().endswith('@contoso.com'):
        resp = flask.Response('')
        resp.headers['CARD-ACTION-STATUS'] = 'Invalid sender or the action performer is not allowed.'

@@ -112,7 +112,7 @@ class ActionableMessageTokenValidator(object):
         """
         pass
     
-    def validation_token(self, token, targetUrl):
+    def validate_token(self, token, targetUrl):
         """
         Validate the JWT token issued by Microsoft.
         """
