@@ -1,4 +1,4 @@
-# Action Request Token Verification Python Sample
+ # Action Request Token Verification Python Sample
 
 Services can send actionable messages to users to complete simple tasks against their services. When a user performs one of the actions in a message, an action request will be sent by Microsoft to the service. The request from Microsoft will contain a bearer token in the authorization header. This code sample shows how to verify the token to ensure the action request is from Microsoft, and use the claims in the token to validate the request.
 
@@ -28,15 +28,16 @@ Services can send actionable messages to users to complete simple tasks against 
                 print(e)
                 abort(401)
             
-            # We have a valid token. We will verify the sender and the action performer. 
+            # We have a valid token. We will verify the sender and the action performer claims in the JWT token. 
+            # The action performer is the user who took the action (i.e. “sub” claim of JWT token)
             # You should replace the code below with your own validation logic.
-            # In this example, we verify that the email is sent by expense@contoso.com
-            # and the action performer has to be someone with @contoso.com email.
+            # In this example, we verify that the email is sent by expense@contoso.com (expected sender)
+            # and the email of the person who performed the action is john@contoso.com email (expected user).
             #
             # You should also return the CARD-ACTION-STATUS header in the response.
             # The value of the header will be displayed to the user.
             if result.sender.lower() != 'expense@contoso.com' or \
-               not result.action_performer.lower().endswith('@contoso.com'):
+               result.action_performer.lower() != 'john@contoso.com'):
                resp = flask.Response('')
                resp.headers['CARD-ACTION-STATUS'] = 'Invalid sender or the action performer is not allowed.'
                return resp, 403
