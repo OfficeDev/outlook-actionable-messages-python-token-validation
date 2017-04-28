@@ -4,6 +4,8 @@ Services can send actionable messages to users to complete simple tasks against 
 
         @app.route("/api/expense", methods = ["POST"])
         def api_post_expense():
+            # Get the token from the Authorization header 
+            
             authorization = request.headers['Authorization']
             token_type, token = authorization.rsplit(' ', 1)
             
@@ -14,25 +16,27 @@ Services can send actionable messages to users to complete simple tasks against 
             result = ActionableMessageTokenValidationResult()
             
             try:
-                # validate_token will verify the following
-                # 1. The token is issued by Microsoft and its digital signature is valid.
-                # 2. The token has not expired.
-                # 3. The audience claim matches the service domain URL.
-                #
-                # Replace https://api.contoso.com with your service domain URL.
-                # For example, if the service URL is https://api.xyz.com/finance/expense?id=1234,
-                # then replace https://api.contoso.com with https://api.xyz.com
+                # This will validate that the token has been issued by Microsoft for the
+                # specified target URL i.e. the target matches the intended audience (“aud” claim in token)
+                # 
+                # In your code, replace https://api.contoso.com with your service’s base URL.
+                # For example, if the service target URL is https://api.xyz.com/finance/expense?id=1234,
+                # then replace https://api.contoso.com with https://api.xyz.com
+                
                 result = validator.validate_token(token, "https://api.contoso.com")
             
             except InvalidActionableMessageTokenError as e:
                 print(e)
                 abort(401)
             
-            # We have a valid token. We will verify the sender and the action performer claims in the JWT token. 
-            # The action performer is the user who took the action (i.e. “sub” claim of JWT token)
-            # You should replace the code below with your own validation logic.
+            # We have a valid token. We will now verify that the sender and action performer are who
+            # we expect. The sender is the identity of the entity that initially sent the Actionable 
+            # Message, and the action performer is the identity of the user who actually 
+            # took the action (“sub” claim in token). 
+            #
+            # You should replace the code below with your own validation logic 
             # In this example, we verify that the email is sent by expense@contoso.com (expected sender)
-            # and the email of the person who performed the action is john@contoso.com email (expected user).
+            # and the email of the person who performed the action is john@contoso.com (expected recipient)
             #
             # You should also return the CARD-ACTION-STATUS header in the response.
             # The value of the header will be displayed to the user.
