@@ -102,12 +102,6 @@ class ActionableMessageTokenValidator(object):
     The validator for actionable message token.
     """
     
-    def __init__(self): 
-        """
-        Constructor.
-        """
-        pass
-    
     def validate_token(self, token, targetUrl):
         """
         Validate the JWT token issued by Microsoft.
