@@ -57,7 +57,7 @@ class OpenIDConnectConfiguration(object):
 
         # Refresh the cache if it's more than 5 days old.
         if diff.total_seconds() > 5 * 24 * 60 * 60:
-            refresh_cache()
+            OpenIDConnectConfiguration.refresh_cache()
 
         keys  = OpenIDConnectConfiguration.signing_keys.get(self._url)
         if keys is not None:
