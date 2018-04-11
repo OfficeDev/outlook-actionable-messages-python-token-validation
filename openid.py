@@ -85,8 +85,6 @@ class OpenIDConnectConfiguration(object):
         openid_config = json.loads(req.read().decode('utf-8'))
         
         return openid_config
-        # jwks_uri = openid_config['jwks_uri']
-        # self.load_jwks(jwks_uri)
     
     @staticmethod
     def load_jwks(url):
