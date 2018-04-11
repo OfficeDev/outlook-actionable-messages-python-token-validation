@@ -93,9 +93,9 @@ class O365OpenIdConfiguration(object):
     """
     Constants for O365 Open ID configuration.
     """
-    APP_ID = "48af08dc-f6d2-435f-b2a7-069abd99c086";
-    METADATA_URL = "https://substrate.office.com/sts/common/.well-known/openid-configuration";
-    TOKEN_ISSUER = "https://substrate.office.com/sts/";
+    APP_ID = "48af08dc-f6d2-435f-b2a7-069abd99c086"
+    METADATA_URL = "https://substrate.office.com/sts/common/.well-known/openid-configuration"
+    TOKEN_ISSUER = "https://substrate.office.com/sts/"
         
 class ActionableMessageTokenValidator(object):
     """
