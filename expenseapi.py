@@ -68,10 +68,10 @@ def api_post_expense():
     # You should also return the CARD-ACTION-STATUS header in the response.
     # The value of the header will be displayed to the user.
     if result.sender.lower() != 'expense@contoso.com' or \
-       not result.action_performer.lower().endswith('@contoso.com'):
-       resp = flask.Response('')
-       resp.headers['CARD-ACTION-STATUS'] = 'Invalid sender or the action performer is not allowed.'
-       return resp, 403
+        not result.action_performer.lower().endswith('@contoso.com'):
+        resp = flask.Response('')
+        resp.headers['CARD-ACTION-STATUS'] = 'Invalid sender or the action performer is not allowed.'
+        return resp, 403
 
     # Further business logic code here to process the expense report.
     resp = flask.Response('')
