@@ -25,13 +25,12 @@
 
 import base64
 import binascii
-import datetime
 import json
 import urllib.request
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-from datetime import (datetime, timedelta)
+from datetime import datetime
 
 class OpenIDConnectConfiguration(object):
     """

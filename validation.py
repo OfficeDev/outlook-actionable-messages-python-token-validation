@@ -24,13 +24,9 @@
 # 
 
 import base64
-import binascii
 import json
 import jwt
-import urllib.request
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
 from openid import OpenIDConnectConfiguration
 
 class InvalidActionableMessageTokenError(Exception) : 
