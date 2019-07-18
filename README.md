@@ -1,10 +1,10 @@
 ---
 topic: sample
 products:
-- Outlook
-- Office 365
+- office-outlook
+- office-365
 languages:
-- Python
+- python
 extensions:
   contentType: samples
   technologies:
